@@ -1,0 +1,446 @@
+{
+  "Resources": {
+    "CalculatorCalculatorHandlerServiceRole6FFC4794": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "CalculatorCalculatorHandlerB84C88AB": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "AssetParameters84087757a10d254e664189986162b1696d43becd2112f07db9ec3884be995a75S3Bucket8D2D8E47"
+          },
+          "S3Key": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Fn::Select": [
+                    0,
+                    {
+                      "Fn::Split": [
+                        "||",
+                        {
+                          "Ref": "AssetParameters84087757a10d254e664189986162b1696d43becd2112f07db9ec3884be995a75S3VersionKeyF366CE5D"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Fn::Select": [
+                    1,
+                    {
+                      "Fn::Split": [
+                        "||",
+                        {
+                          "Ref": "AssetParameters84087757a10d254e664189986162b1696d43becd2112f07db9ec3884be995a75S3VersionKeyF366CE5D"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "CalculatorCalculatorHandlerServiceRole6FFC4794",
+            "Arn"
+          ]
+        },
+        "Handler": "com.org.compute.Handler",
+        "Runtime": "java8"
+      },
+      "DependsOn": [
+        "CalculatorCalculatorHandlerServiceRole6FFC4794"
+      ]
+    },
+    "CalculatorCalculatorApiProdLogs4A5F331D": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "RetentionInDays": 731
+      },
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain"
+    },
+    "CalculatorCalculatorApiACAF1AFF": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Description": "Simple calculator with basic arithmetic operations.",
+        "Name": "Calculator"
+      }
+    },
+    "CalculatorCalculatorApiCloudWatchRoleC54C1455": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "apigateway.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "CalculatorCalculatorApiAccount189B17A8": {
+      "Type": "AWS::ApiGateway::Account",
+      "Properties": {
+        "CloudWatchRoleArn": {
+          "Fn::GetAtt": [
+            "CalculatorCalculatorApiCloudWatchRoleC54C1455",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "CalculatorCalculatorApiACAF1AFF"
+      ]
+    },
+    "CalculatorCalculatorApiDeploymentB8185AFF742c33d1b3bcc04d54dc40e0a0e76bd8": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CalculatorCalculatorApiACAF1AFF"
+        },
+        "Description": "Automatically created by the RestApi construct"
+      },
+      "DependsOn": [
+        "CalculatorCalculatorApicalculatePOST3E10AB4A",
+        "CalculatorCalculatorApicalculate08DA3DB7",
+        "CalculatorCalculatorApiErrorOutputModel01F47DBB",
+        "CalculatorCalculatorApiInputModel6484C99F",
+        "CalculatorCalculatorApiSuccessOutputModelADA555EE",
+        "CalculatorCalculatorApivalidator73E9CC38"
+      ]
+    },
+    "CalculatorCalculatorApiDeploymentStageprod87D51829": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CalculatorCalculatorApiACAF1AFF"
+        },
+        "AccessLogSetting": {
+          "DestinationArn": {
+            "Fn::GetAtt": [
+              "CalculatorCalculatorApiProdLogs4A5F331D",
+              "Arn"
+            ]
+          },
+          "Format": "$context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] \"$context.httpMethod $context.resourcePath $context.protocol\" $context.status $context.responseLength $context.requestId"
+        },
+        "DeploymentId": {
+          "Ref": "CalculatorCalculatorApiDeploymentB8185AFF742c33d1b3bcc04d54dc40e0a0e76bd8"
+        },
+        "StageName": "prod"
+      }
+    },
+    "CalculatorCalculatorApicalculate08DA3DB7": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "CalculatorCalculatorApiACAF1AFF",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "calculate",
+        "RestApiId": {
+          "Ref": "CalculatorCalculatorApiACAF1AFF"
+        }
+      }
+    },
+    "CalculatorCalculatorApicalculatePOSTApiPermissiontestCalculatorCalculatorApi48CAB8D3POSTcalculate1F4172DF": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "CalculatorCalculatorHandlerB84C88AB",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:eu-north-1:100100100100:",
+              {
+                "Ref": "CalculatorCalculatorApiACAF1AFF"
+              },
+              "/",
+              {
+                "Ref": "CalculatorCalculatorApiDeploymentStageprod87D51829"
+              },
+              "/POST/calculate"
+            ]
+          ]
+        }
+      }
+    },
+    "CalculatorCalculatorApicalculatePOSTApiPermissionTesttestCalculatorCalculatorApi48CAB8D3POSTcalculate8C45A076": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "CalculatorCalculatorHandlerB84C88AB",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:eu-north-1:100100100100:",
+              {
+                "Ref": "CalculatorCalculatorApiACAF1AFF"
+              },
+              "/test-invoke-stage/POST/calculate"
+            ]
+          ]
+        }
+      }
+    },
+    "CalculatorCalculatorApicalculatePOST3E10AB4A": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "ResourceId": {
+          "Ref": "CalculatorCalculatorApicalculate08DA3DB7"
+        },
+        "RestApiId": {
+          "Ref": "CalculatorCalculatorApiACAF1AFF"
+        },
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:eu-north-1:lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "CalculatorCalculatorHandlerB84C88AB",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": [
+          {
+            "ResponseModels": {
+              "application/json": {
+                "Ref": "CalculatorCalculatorApiErrorOutputModel01F47DBB"
+              }
+            },
+            "StatusCode": "404"
+          },
+          {
+            "ResponseModels": {
+              "application/json": {
+                "Ref": "CalculatorCalculatorApiSuccessOutputModelADA555EE"
+              }
+            },
+            "StatusCode": "200"
+          }
+        ],
+        "OperationName": "ArithmeticOperation",
+        "RequestModels": {
+          "application/json": {
+            "Ref": "CalculatorCalculatorApiInputModel6484C99F"
+          }
+        },
+        "RequestValidatorId": {
+          "Ref": "CalculatorCalculatorApivalidator73E9CC38"
+        }
+      }
+    },
+    "CalculatorCalculatorApiInputModel6484C99F": {
+      "Type": "AWS::ApiGateway::Model",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CalculatorCalculatorApiACAF1AFF"
+        },
+        "ContentType": "application/json",
+        "Name": "Request",
+        "Schema": {
+          "description": "Defines allowed properties",
+          "properties": {
+            "first_number": {
+              "description": "Operand A",
+              "type": "number"
+            },
+            "second_number": {
+              "description": "Operand B",
+              "type": "number"
+            },
+            "operation": {
+              "default": "ADD",
+              "description": "Operation to perform",
+              "enum": [
+                "ADD",
+                "SUBTRACT",
+                "MULTIPLY",
+                "DIVIDE"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "first_number",
+            "second_number",
+            "operation"
+          ],
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "title": "Input for calculator"
+        }
+      }
+    },
+    "CalculatorCalculatorApiSuccessOutputModelADA555EE": {
+      "Type": "AWS::ApiGateway::Model",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CalculatorCalculatorApiACAF1AFF"
+        },
+        "ContentType": "application/json",
+        "Name": "SuccessResponse",
+        "Schema": {
+          "description": "Result",
+          "type": "string",
+          "$schema": "http://json-schema.org/draft-04/schema#"
+        }
+      }
+    },
+    "CalculatorCalculatorApiErrorOutputModel01F47DBB": {
+      "Type": "AWS::ApiGateway::Model",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CalculatorCalculatorApiACAF1AFF"
+        },
+        "ContentType": "application/json",
+        "Name": "ErrorResponse",
+        "Schema": {
+          "description": "Message",
+          "type": "string",
+          "$schema": "http://json-schema.org/draft-04/schema#"
+        }
+      }
+    },
+    "CalculatorCalculatorApivalidator73E9CC38": {
+      "Type": "AWS::ApiGateway::RequestValidator",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CalculatorCalculatorApiACAF1AFF"
+        },
+        "Name": "RequestBodyValidator",
+        "ValidateRequestBody": true
+      }
+    }
+  },
+  "Outputs": {
+    "CalculatorCalculatorApiEndpointC4B9DF7E": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "CalculatorCalculatorApiACAF1AFF"
+            },
+            ".execute-api.eu-north-1.",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/",
+            {
+              "Ref": "CalculatorCalculatorApiDeploymentStageprod87D51829"
+            },
+            "/"
+          ]
+        ]
+      }
+    }
+  },
+  "Parameters": {
+    "AssetParameters84087757a10d254e664189986162b1696d43becd2112f07db9ec3884be995a75S3Bucket8D2D8E47": {
+      "Type": "String",
+      "Description": "S3 bucket for asset \"84087757a10d254e664189986162b1696d43becd2112f07db9ec3884be995a75\""
+    },
+    "AssetParameters84087757a10d254e664189986162b1696d43becd2112f07db9ec3884be995a75S3VersionKeyF366CE5D": {
+      "Type": "String",
+      "Description": "S3 key for asset version \"84087757a10d254e664189986162b1696d43becd2112f07db9ec3884be995a75\""
+    },
+    "AssetParameters84087757a10d254e664189986162b1696d43becd2112f07db9ec3884be995a75ArtifactHashCBF0B957": {
+      "Type": "String",
+      "Description": "Artifact hash for asset \"84087757a10d254e664189986162b1696d43becd2112f07db9ec3884be995a75\""
+    }
+  }
+}
