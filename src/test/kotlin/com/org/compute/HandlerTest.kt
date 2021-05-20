@@ -59,4 +59,22 @@ class HandlerTest : TestBase() {
         val actualMessage = JSONObject(lambdaResponse.body).get("message").toString()
         assertEquals("Unsupported arithmetic operation", actualMessage, "Multiplication Failed")
     }
+
+    @Test
+    fun shouldSucceedForNegativeNumbers() {
+        val input = APIGatewayProxyRequestEvent().withBody(lambdaInputFromFile(TestConstants.RESOURCES + "/success_negative_numbers.json"))
+        val lambdaResponse = Handler().handleRequest(input, MockContext())
+        assertNotNull(lambdaResponse)
+        val actualResult = JSONObject(lambdaResponse.body).get("result").toString()
+        assertEquals("-6", actualResult, "Negative numbers will fail")
+    }
+
+    @Test
+    fun shouldSucceedForLargeNumbers() {
+        val input = APIGatewayProxyRequestEvent().withBody(lambdaInputFromFile(TestConstants.RESOURCES + "/success_large_numbers.json"))
+        val lambdaResponse = Handler().handleRequest(input, MockContext())
+        assertNotNull(lambdaResponse)
+        val actualResult = JSONObject(lambdaResponse.body).get("result").toString()
+        assertEquals("8491218505418978492202748332830505872", actualResult, "Large numbers will fail")
+    }
 }
